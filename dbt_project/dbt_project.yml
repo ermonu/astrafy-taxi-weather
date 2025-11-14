@@ -1,0 +1,23 @@
+name: taxi_weather
+version: '1.0.0'
+profile: taxi_weather
+
+model-paths: ["models"]
+analysis-paths: ["analysis"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Define variables that allow referencing the raw dataset from dbt models
+vars:
+  raw_dataset: "{{ env_var('RAW_DATASET', 'taxi_raw') }}"
+
+models:
+  taxi_weather:
+    staging:
+      materialized: incremental
+      incremental_strategy: merge
+    mart:
+      materialized: table
