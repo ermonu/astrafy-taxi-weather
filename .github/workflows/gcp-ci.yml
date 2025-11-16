@@ -20,18 +20,26 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # 1) Autentication
+      - name: Auth to GCP
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # 2) Install gcloud
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
 
+      # 3) Install Terraform
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.6.6
 
+      # 4) Terraform init 
       - name: Terraform init
         working-directory: terraform
         run: terraform init -input=false
@@ -44,10 +52,11 @@ jobs:
         working-directory: terraform
         run: terraform plan -input=false
 
-      - name: Terraform apply (solo en push a main)
+      - name: Terraform apply on (only push to main)
         if: github.event_name == 'push'
         working-directory: terraform
         run: terraform apply -auto-approve -input=false
+
 
   dbt:
     needs: terraform
@@ -56,30 +65,30 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Auth to GCP
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
 
       - name: Install Python & dbt-bigquery
         run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip
-          pip install --upgrade pip
-          pip install dbt-bigquery==1.8.0
+          python3 -m pip install --upgrade pip
+          # Fijamos click a una versión compatible y sobrescribimos la del sistema
+          python3 -m pip install "click>=8.1.7,<9"
+          python3 -m pip install "dbt-bigquery==1.8.0"
 
-      - name: dbt deps
-        working-directory: dbt_project
-        run: dbt deps
-
-      - name: dbt run (solo en push a main)
+      - name: dbt build (only push main)
         if: github.event_name == 'push'
         working-directory: dbt_project
-        run: dbt run
+        run: dbt build
 
-      - name: dbt build (en PR, opcional)
+      - name: dbt build (pull request)
         if: github.event_name == 'pull_request'
         working-directory: dbt_project
-        run: dbt build --select state:modified+
+        run: dbt build
