@@ -17,39 +17,7 @@ Key features:
 
 ## Architecture
 
-```
-+-----------------+        +-----------------+         +-----------------+
-|   GitHub Repo   |        | Terraform (IaC) |         |  GitHub Actions |
-|  (Source code)  | -----> |  provision GCP  |  -----> |   CI/CD         |
-+-----------------+        +-----------------+         +-----------------+
-          |                                                       |
-          |                               deploys                 |
-          v                                                       |
-   +-------------+      triggers        +------------------+      |
-   | Cloud       | <-------------+------|  Cloud Scheduler |      |
-   | Run Service |               |      +------------------+      |
-   +-------------+               |                                  |
-          |                      |          invokes                  |
-          |                      |                                   |
-          v                      |                                   |
-+-------------------+            |                                   |
-|  Ingestion Flask  |            |                                   |
-|  App (Docker)     | -----------+---> Writes to BigQuery            |
-+-------------------+                                            |
-          |                                                            |
-          v                                                            |
-  +--------------+         +-----------------+        +---------------+
-  | Raw Weather  |         | Raw Taxi Trips |        |    dbt        |
-  |   (BQ table) |         |  (BQ table)    |        | Transformations|
-  +--------------+         +-----------------+        +---------------+
-          \                            /                      |
-           \                          /                       |
-            +----> Fact & Mart  <----+                        |
-                      Models                             +----v----+
-                                                       | Looker   |
-                                                       |  Studio  |
-                                                       +---------+
-```
+![Architecture Diagram](./imgs/diagram.png)
 
 1. **GitHub** hosts all code (ingestion script, dbt models, Terraform).  A GitHub Actions workflow runs lint/tests, plans Terraform, builds & pushes the image, and executes dbt.
 2. **Terraform** provisions GCP resources: Artifact Registry, Cloud Run service, BigQuery datasets, Cloud Storage bucket, IAM roles, Cloud Scheduler job and Data Catalog policy tags.
@@ -161,7 +129,7 @@ The pipeline creates a **Data Catalog policy tag** and attaches it to the `payme
 - **Additional weather metrics** can be added by modifying `ingest_weather.py` to request more variables (e.g. humidity) and updating the schema in dbt models.
 - **New transformations** or analytics can be added by creating additional dbt models in the `mart` layer.
 - **Cost optimisation**: Partition and cluster the mart table by `trip_start_date` and additional fields (`pickup_community_area`) to improve performance.
-- **Monitoring and alerts**: Integrate Stackdriver monitoring for the Cloud Run service and set up alerting on job failures.
+- **Monitoring and alerts**: Integrate Cloud Monitoring to track the Cloud Run service and set up alerting on job failures.
 
 ## Conclusion
 
