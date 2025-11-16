@@ -8,17 +8,13 @@ on:
     branches:
       - main
 
-env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: europe-west1
-
 jobs:
   terraform:
     runs-on: ubuntu-latest
     env:
       TF_IN_AUTOMATION: true
-      TF_VAR_project_id: ${{ env.PROJECT_ID }}
-      TF_VAR_region: ${{ env.REGION }}
+      TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      TF_VAR_region: europe-west1
       TF_VAR_cloud_run_image: ${{ vars.CLOUD_RUN_IMAGE }}
     steps:
       - name: Checkout repo
@@ -27,7 +23,7 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v1
         with:
-          project_id: ${{ env.PROJECT_ID }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
@@ -56,8 +52,6 @@ jobs:
   dbt:
     needs: terraform
     runs-on: ubuntu-latest
-    env:
-      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -65,7 +59,7 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v1
         with:
-          project_id: ${{ env.PROJECT_ID }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
@@ -80,7 +74,12 @@ jobs:
         working-directory: dbt_project
         run: dbt deps
 
-      - name: dbt run 
+      - name: dbt run (solo en push a main)
         if: github.event_name == 'push'
         working-directory: dbt_project
         run: dbt run
+
+      - name: dbt build (en PR, opcional)
+        if: github.event_name == 'pull_request'
+        working-directory: dbt_project
+        run: dbt build --select state:modified+
