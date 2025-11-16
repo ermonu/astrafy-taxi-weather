@@ -1,0 +1,12 @@
+taxi_weather:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GCP_PROJECT_ID', 'proyectomanu') }}"
+      dataset: "{{ env_var('GCP_DATASET_NAME', 'taxi_staging') }}"
+      threads: 4
+      timeout_seconds: 300
+      location: "{{ env_var('GCP_LOCATION', 'US') }}"
+      priority: interactive

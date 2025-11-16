@@ -1,43 +1,46 @@
 {{ config(
-    materialized='table'
+    materialized = 'table',
+    partition_by = {
+      "field": "trip_start_date",
+      "data_type": "date"
+    },
+    cluster_by = ["payment_type"],
+    require_partition_filter = true
 ) }}
-
---
--- Fact table combining taxi trips with daily weather metrics.
---
--- It joins the staging trips model to the raw weather data on the
--- trip_start_date and computes aggregate measures per day and weather
--- metrics.  This table can be used directly in Looker Studio to build
--- dashboards analysing the correlation between weather and trip
--- duration.
---
 
 with trips as (
     select
-        trip_start_date as date,
-        trip_seconds / 60.0 as trip_minutes
+        date(trip_start_timestamp) as trip_start_date,
+        count(*)                  as trips,
+        avg(trip_seconds)         as avg_trip_duration,
+        avg(trip_miles)           as avg_trip_miles,
+        payment_type
     from {{ ref('stg_chicago_trips') }}
+    group by 1, 5
 ),
+
 weather as (
     select
-        date,
-        precipitation_sum,
-        temp_max,
-        temp_min,
-        windspeed_max
-    from `{{ var('raw_dataset') }}`.weather_daily
+        date                as date,
+        avg(temperature_2m) as avg_temp,
+        avg(precipitation)  as avg_precip,
+        avg(cloudcover)     as avg_cloudcover,
+        avg(windspeed_10m)  as avg_windspeed
+    from {{ source('weather', 'daily_weather_chicago') }}
+    group by 1
 )
 
 select
-    trips.date,
-    weather.precipitation_sum,
-    weather.temp_max,
-    weather.temp_min,
-    weather.windspeed_max,
-    count(*) as trip_count,
-    avg(trips.trip_minutes) as avg_trip_minutes
-from trips
-left join weather
-  on trips.date = weather.date
-group by 1,2,3,4,5
-order by 1;
+    t.trip_start_date,
+    t.trips,
+    t.avg_trip_duration,
+    t.avg_trip_miles,
+    t.payment_type,
+    w.avg_temp,
+    w.avg_precip,
+    w.avg_cloudcover,
+    w.avg_windspeed
+from trips t
+left join weather w
+  on t.trip_start_date = w.date
+
