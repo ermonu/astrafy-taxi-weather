@@ -83,12 +83,12 @@ jobs:
           python3 -m pip install "click>=8.1.7,<9"
           python3 -m pip install "dbt-bigquery==1.8.0"
 
-      - name: dbt run (only push main)
+      - name: dbt build (only push main)
         if: github.event_name == 'push'
         working-directory: dbt_project
-        run: dbt run
+        run: dbt build
 
-      - name: dbt build (optional)
+      - name: dbt build (pull request)
         if: github.event_name == 'pull_request'
         working-directory: dbt_project
-        run: dbt build --select state:modified+
+        run: dbt build
