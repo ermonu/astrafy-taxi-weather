@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: chicago_taxi_trips
+    database: bigquery-public-data
+    schema: chicago_taxi_trips
+    tables:
+      - name: taxi_trips
+
+  - name: weather
+    database: "{{ env_var('GCP_PROJECT_ID', 'proyectomanu') }}"
+    schema: "{{ env_var('RAW_DATASET_NAME', var('raw_dataset', 'taxi_raw')) }}"
+    tables:
+      - name: daily_weather_chicago

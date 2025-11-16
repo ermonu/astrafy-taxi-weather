@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: fact_trips_with_weather
+    description: "Fact table joining Chicago taxi trips with weather"
+    columns:
+      - name: trip_start_date
+        description: "Date of the trip"
+      - name: trips
+        description: "Number of trips in the day"
+      - name: avg_trip_duration
+        description: "Average trip duration in seconds"
+      - name: avg_trip_miles
+        description: "Average trip distance in miles"
+      - name: payment_type
+        description: "Payment method used for the trip"
+        # policy_tags:
+        #   - "{{ var('PAYMENT_TYPE_POLICY_TAG') }}"
+      - name: avg_temp
+        description: "Average daily temperature in °C"
+      - name: avg_precip
+        description: "Average daily precipitation in mm"
+      - name: avg_cloudcover
+        description: "Average daily cloud cover in %"
+      - name: avg_windspeed
+        description: "Average daily wind speed in m/s"

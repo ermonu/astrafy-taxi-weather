@@ -12,7 +12,9 @@ clean-targets:
 
 # Define variables that allow referencing the raw dataset from dbt models
 vars:
-  raw_dataset: "{{ env_var('RAW_DATASET', 'taxi_raw') }}"
+  raw_dataset: "taxi_raw"
+  PAYMENT_TYPE_POLICY_TAG: "projects/proyectomanu/locations/europe-west1/taxonomies/918566496354584264/policyTags/8265901397227505812"
+
 
 models:
   taxi_weather:
@@ -21,3 +23,4 @@ models:
       incremental_strategy: merge
     mart:
       materialized: table
+      +schema: "{{ env_var('MART_DATASET_NAME', 'taxi_mart') }}"

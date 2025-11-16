@@ -1,0 +1,84 @@
+version: 2
+
+models:
+  - name: stg_chicago_trips
+    description: "Staging model for Chicago taxi trips between 2023-06-01 and 2023-12-31. It standardises raw fields and adds a trip_start_date column for partitioning."
+    columns:
+      - name: taxi_id
+        description: "Identifier of the taxi vehicle."
+        tests:
+          - not_null
+
+      - name: unique_key
+        description: "Unique identifier for the trip record in the source dataset."
+        tests:
+          - not_null
+          - unique
+
+      - name: trip_start_date
+        description: "Calendar date when the trip started (derived from trip_start_timestamp)."
+        tests:
+          - not_null
+
+      - name: trip_start_timestamp
+        description: "Exact timestamp when the trip started, rounded to the nearest 15 minutes."
+
+      - name: trip_end_timestamp
+        description: "Exact timestamp when the trip ended, rounded to the nearest 15 minutes."
+
+      - name: trip_seconds
+        description: "Duration of the trip in seconds."
+
+      - name: trip_miles
+        description: "Distance of the trip in miles."
+
+      - name: pickup_census_tract
+        description: "Census tract where the trip began."
+
+      - name: dropoff_census_tract
+        description: "Census tract where the trip ended."
+
+      - name: pickup_community_area
+        description: "Community area where the trip began."
+
+      - name: dropoff_community_area
+        description: "Community area where the trip ended."
+
+      - name: pickup_latitude
+        description: "Latitude of the pickup location."
+
+      - name: pickup_longitude
+        description: "Longitude of the pickup location."
+
+      - name: pickup_location
+        description: "Geographic point of the pickup location."
+
+      - name: dropoff_latitude
+        description: "Latitude of the dropoff location."
+
+      - name: dropoff_longitude
+        description: "Longitude of the dropoff location."
+
+      - name: dropoff_location
+        description: "Geographic point of the dropoff location."
+
+      - name: fare
+        description: "Fare amount for the trip (excluding tips, tolls and extras)."
+
+      - name: tips
+        description: "Tips paid by the passenger."
+
+      - name: tolls
+        description: "Toll charges for the trip."
+
+      - name: extras
+        description: "Additional surcharges (e.g. airport fees)."
+
+      - name: trip_total
+        description: "Total cost of the trip, including fare, tips, tolls and extras."
+
+      - name: payment_type
+        description: "Payment type used for the trip (e.g. Cash, Credit Card)."
+
+      - name: company
+        description: "Taxi company that reported the trip."
