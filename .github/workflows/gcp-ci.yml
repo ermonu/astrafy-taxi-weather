@@ -79,10 +79,6 @@ jobs:
           pip install --upgrade pip
           pip install dbt-bigquery==1.8.0
 
-      - name: dbt deps
-        working-directory: dbt_project
-        run: dbt deps
-
       - name: dbt run (solo en push a main)
         if: github.event_name == 'push'
         working-directory: dbt_project
